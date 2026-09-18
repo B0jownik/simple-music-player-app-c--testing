@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Ten sam framework co aplikacja - kod testowany musi sie kompilowac tak samo -->
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>MusicPlayerApp.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Testy kompiluja Playlist.cs u siebie, zamiast odwolywac sie do projektu aplikacji.
+      Powod: aplikacja zalezy od WinForms i od COM-owego Windows Media Playera, ktorego
+      nie ma na serwerze GitHuba. Gdyby testy ciagnely za soba caly projekt aplikacji,
+      CI nie dalo by sie zbudowac.
+    -->
+    <Compile Include="..\MusicPlayerApp\Playlist.cs" Link="Playlist.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.1" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>
