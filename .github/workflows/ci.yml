@@ -1,0 +1,56 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Testy jednostkowe. Projekt testowy kompiluje Playlist.cs u siebie i nie
+  # odwoluje sie do projektu aplikacji - gdyby sie odwolywal, "dotnet test" by
+  # nie zadzialal, bo SDK .NET nie potrafi obsluzyc referencji COM (tej do
+  # Windows Media Playera). Do tego potrzebny jest pelny MSBuild z Visual Studio.
+  testy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v5
+
+      - name: Zainstaluj .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Uruchom testy
+        run: >
+          dotnet test MusicPlayerApp.Tests/MusicPlayerApp.Tests.csproj
+          --configuration Release
+          --logger "trx;LogFileName=wyniki.trx"
+          --results-directory TestResults
+
+      - name: Zapisz wyniki testow
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wyniki-testow
+          path: TestResults/
+          if-no-files-found: ignore
+
+  # Osobny job: czy sama aplikacja WinForms nadal sie kompiluje.
+  # Tu potrzebny jest MSBuild z Visual Studio, bo projekt uzywa referencji COM.
+  aplikacja:
+    runs-on: windows-latest
+
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v5
+
+      - name: Znajdz MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Zbuduj aplikacje
+        run: msbuild MusicPlayerApp/MusicPlayerApp.csproj /p:Configuration=Debug /p:Platform=AnyCPU
